@@ -1,6 +1,7 @@
 package nextstep.di.factory;
 
 import com.google.common.collect.Sets;
+import nextstep.annotation.Configuration;
 import nextstep.di.factory.example.*;
 import nextstep.stereotype.Controller;
 import nextstep.stereotype.Repository;
@@ -11,6 +12,7 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Set;
@@ -28,7 +30,7 @@ public class BeanFactoryTest {
     @SuppressWarnings("unchecked")
     public void setup() {
         reflections = new Reflections("nextstep.di.factory.example");
-        Set<Class<?>> preInstanticateClazz = getTypesAnnotatedWith(Controller.class, Service.class, Repository.class);
+        Set<Class<?>> preInstanticateClazz = getTypesAnnotatedWith(Controller.class, Service.class, Repository.class, Configuration.class);
         beanFactory = new BeanFactory(preInstanticateClazz);
         beanFactory.initialize();
     }
@@ -71,6 +73,13 @@ public class BeanFactoryTest {
         final QuestionRepository expected = beanFactory.getBean(JdbcQuestionRepository.class);
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void configuration_빈_등록_되는지_테스트() {
+        DataSource actual = beanFactory.getBean(DataSource.class);
+
+        assertThat(actual).isNotNull();
     }
 
     @SuppressWarnings("unchecked")

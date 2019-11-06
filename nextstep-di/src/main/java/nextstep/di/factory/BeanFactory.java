@@ -1,6 +1,8 @@
 package nextstep.di.factory;
 
 import com.google.common.collect.Maps;
+import nextstep.annotation.Bean;
+import nextstep.annotation.Configuration;
 import nextstep.exception.BeanFactoryException;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
@@ -27,12 +29,31 @@ public class BeanFactory {
 
     @SuppressWarnings("unchecked")
     public <T> T getBean(final Class<T> requiredType) {
-        Class<?> concreteClass = BeanFactoryUtils.findConcreteClass(requiredType, preInstantiatedBeans);
+        Class<?> concreteClass = BeanFactoryUtils.findConcreteClass(requiredType, beans.keySet());
         return (T) beans.get(concreteClass);
     }
 
     public void initialize() {
         preInstantiatedBeans.forEach(this::createBean);
+        preInstantiatedBeans.forEach(x -> {
+            if (x.isAnnotationPresent(Configuration.class)) {
+                Method[] methods = x.getMethods();
+                Stream.of(methods)
+                        .filter(method -> method.isAnnotationPresent(Bean.class))
+                        .map(method -> {
+                            try {
+                                Object[] params = Arrays.stream(method.getParameterTypes())
+                                        .map(param -> getBean(param))
+                                        .toArray();
+                                return method.invoke(getBean(x), params);
+                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                e.printStackTrace();
+                                throw new RuntimeException();
+                            }
+                        })
+                        .forEach(y -> beans.put(y.getClass(), y));
+            }
+        });
     }
 
     private Object createBean(final Class<?> preInstantiatedBean) {
