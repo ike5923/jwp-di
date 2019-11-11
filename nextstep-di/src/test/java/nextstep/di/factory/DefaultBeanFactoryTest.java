@@ -18,8 +18,8 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class BeanFactoryTest {
-    private static final Logger log = LoggerFactory.getLogger(BeanFactoryTest.class);
+public class DefaultBeanFactoryTest {
+    private static final Logger log = LoggerFactory.getLogger(DefaultBeanFactoryTest.class);
 
     private Reflections reflections;
     private BeanFactory beanFactory;
@@ -29,8 +29,7 @@ public class BeanFactoryTest {
     public void setup() {
         reflections = new Reflections("nextstep.di.factory.example");
         Set<Class<?>> preInstanticateClazz = getTypesAnnotatedWith(Controller.class, Service.class, Repository.class);
-        beanFactory = new BeanFactory(preInstanticateClazz);
-        beanFactory.initialize();
+        beanFactory = new DefaultBeanFactory(preInstanticateClazz);
     }
 
     @Test
